@@ -1,3 +1,3 @@
 package com.example.week05_recyclerview
 
-data class MyData(var textString:String, var textPt:Int)
+data class MyData(var word:String, var meaning:String)
