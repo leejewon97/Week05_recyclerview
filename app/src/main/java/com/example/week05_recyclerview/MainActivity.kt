@@ -2,28 +2,46 @@ package com.example.week05_recyclerview
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.recyclerview.widget.*
 import com.example.week05_recyclerview.databinding.ActivityMainBinding
 import com.example.week05_recyclerview.databinding.RowBinding
-import java.util.Scanner
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding:ActivityMainBinding
     var datas:ArrayList<MyData> = ArrayList()
     lateinit var adapter: MyDataAdapter
+    lateinit var tts: TextToSpeech
+    var isTtsReady = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initData()
         initRecyclerView()
+        initTts()
     }
 
+    private fun initTts(){
+        tts = TextToSpeech(this) {
+            isTtsReady = true
+            tts.language = Locale.US
+        }
+    }
+    override fun onStop() {
+        super.onStop()
+        tts.stop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        tts.shutdown()
+    }
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu1, menu)
         return true
@@ -53,9 +71,30 @@ class MainActivity : AppCompatActivity() {
                     else -> View.GONE
                 }
                 adapter.notifyItemChanged(adapterPosition)
+                if(isTtsReady)
+                    tts.speak(data.word, TextToSpeech.QUEUE_ADD, null, null)
             }
         }
         binding.recyclerView.adapter = adapter
+        val simpleCallback = object: ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT
+        ){
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                adapter.moveItem(viewHolder.adapterPosition, target.adapterPosition)
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                adapter.removeItem(viewHolder.adapterPosition)
+            }
+
+        }
+        val itemTouchHelper = ItemTouchHelper(simpleCallback)
+        itemTouchHelper.attachToRecyclerView((binding.recyclerView))
     }
     fun initData(){
         val scan = Scanner(resources.openRawResource(R.raw.words))

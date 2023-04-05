@@ -20,6 +20,16 @@ class MyDataAdapter(val items:ArrayList<MyData>):RecyclerView.Adapter<MyDataAdap
         }
     }
 
+    fun moveItem(oldPos:Int, newPos:Int){
+        val tmp = items[newPos]
+        items[newPos] = items[oldPos]
+        items[oldPos] = tmp
+        notifyItemMoved(oldPos, newPos)
+    }
+    fun removeItem(pos:Int){
+        items.removeAt(pos)
+        notifyItemRemoved(pos)
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = RowBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(view)
