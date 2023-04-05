@@ -4,14 +4,18 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.week05_recyclerview.databinding.ActivityMainBinding
+import com.example.week05_recyclerview.databinding.RowBinding
+import java.util.Scanner
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding:ActivityMainBinding
-    var data:ArrayList<MyData> = ArrayList()
+    var datas:ArrayList<MyData> = ArrayList()
+    lateinit var adapter: MyDataAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -41,17 +45,24 @@ class MainActivity : AppCompatActivity() {
     }
     fun initRecyclerView(){
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.recyclerView.adapter = MyDataAdapter(data)
+        adapter = MyDataAdapter(datas)
+        adapter.itemClickListener = object:MyDataAdapter.OnItemClickListener{
+            override fun onItemClick(data: MyData, adapterPosition: Int) {
+                data.visibility = when (data.visibility) {
+                    View.GONE -> View.VISIBLE
+                    else -> View.GONE
+                }
+                adapter.notifyItemChanged(adapterPosition)
+            }
+        }
+        binding.recyclerView.adapter = adapter
     }
     fun initData(){
-        data.add(MyData("item1", 10))
-        data.add(MyData("item2", 5))
-        data.add(MyData("item3", 13))
-        data.add(MyData("item4", 8))
-        data.add(MyData("item5", 18))
-        data.add(MyData("item6", 9))
-        data.add(MyData("item7", 15))
-        data.add(MyData("item8", 7))
-        data.add(MyData("item9", 20))
+        val scan = Scanner(resources.openRawResource(R.raw.words))
+        while (scan.hasNextLine()){
+            val word = scan.nextLine()
+            val mean = scan.nextLine()
+            datas.add(MyData(word, mean, View.GONE))
+        }
     }
 }

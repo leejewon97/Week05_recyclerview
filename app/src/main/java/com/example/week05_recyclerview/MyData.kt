@@ -1,3 +1,5 @@
 package com.example.week05_recyclerview
 
-data class MyData(var textString:String, var textPt:Int)
+import android.opengl.Visibility
+
+data class MyData(var word:String, var mean:String, var visibility:Int)
