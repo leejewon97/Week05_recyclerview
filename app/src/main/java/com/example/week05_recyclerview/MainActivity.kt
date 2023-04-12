@@ -1,46 +1,30 @@
 package com.example.week05_recyclerview
 
+import MyDataAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.Toast
 import androidx.recyclerview.widget.*
 import com.example.week05_recyclerview.databinding.ActivityMainBinding
+import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding:ActivityMainBinding
-    var data:ArrayList<MyData> = ArrayList()
-    lateinit var adapter:MyDataAdapter
-//    lateinit var tts:TextToSpeech
-//    var isTtsReady = false
+    var datas:ArrayList<MyData> = ArrayList()
+    lateinit var adapter: MyDataAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initData()
         initRecyclerView()
-//        initTts()
     }
-
-//    private fun initTts(){
-//        tts = TextToSpeech(this) {
-//            isTtsReady = true
-//            tts.language = Locale.US
-//        }
-//    }
-
-//    override fun onStop() {
-//        super.onStop()
-//        tts.stop()
-//    }
-//
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        tts.shutdown()
-//    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu1, menu)
@@ -63,41 +47,36 @@ class MainActivity : AppCompatActivity() {
     }
     fun initRecyclerView(){
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        adapter = MyDataAdapter(data)
-        adapter.itemClickListener = object :MyDataAdapter.OnItemClickListener {
-            override fun onItemClick(data: MyData) {
-//                if(isTtsReady)
-//                    tts.speak(data.word, TextToSpeech.QUEUE_ADD, null, null)
+        adapter = MyDataAdapter(datas)
+        adapter.itemClickListener = object:MyDataAdapter.OnItemClickListener{
+            override fun onItemClick(data: MyData, adapterPosition: Int) {
+                data.visibility = when (data.visibility) {
+                    View.GONE -> View.VISIBLE
+                    else -> View.GONE
+                }
+                adapter.notifyItemChanged(adapterPosition)
             }
         }
-        binding.recyclerView.adapter = MyDataAdapter(data)
-        val simpleCallback = object: ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT
-        ){
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                adapter.moveItem(viewHolder.adapterPosition, target.adapterPosition)
-                return true
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                adapter.removeItem(viewHolder.adapterPosition)
-            }
-
-        }
-        val itemTouchHelper = ItemTouchHelper(simpleCallback)
-        itemTouchHelper.attachToRecyclerView((binding.recyclerView))
+        binding.recyclerView.adapter = adapter
     }
     fun initData(){
+        try {
+            val scan2 = Scanner(openFileInput("voc.txt"))
+            while (scan2.hasNextLine()){
+                val word = scan2.nextLine()
+                val mean = scan2.nextLine()
+                datas.add(MyData(word, mean, View.GONE))
+            }
+        } catch (e:IOException) {
+            Toast.makeText(this, "CATCH", Toast.LENGTH_SHORT).show()
+        }
+
+        // IOException e
         val scan = Scanner(resources.openRawResource(R.raw.words))
-        while(scan.hasNextLine()) {
+        while (scan.hasNextLine()){
             val word = scan.nextLine()
-            val meaning = scan.nextLine()
-            data.add(MyData(word, meaning))
+            val mean = scan.nextLine()
+            datas.add(MyData(word, mean, View.GONE))
         }
     }
 }
-
